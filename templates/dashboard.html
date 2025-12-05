@@ -1,0 +1,722 @@
+{% extends "base.html" %}
+
+{% block title %}主界面 - JNU智慧康养平台{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2D8CFF;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .nav-brand:hover {
+        color: #1a7ae8;
+    }
+
+    .nav-brand i {
+        font-size: 1.8rem;
+    }
+
+    .emergency-btn {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        z-index: 100;
+    }
+
+    .emergency-btn:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
+    }
+
+    .emergency-btn i {
+        font-size: 1.3rem;
+    }
+
+    .emergency-options {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .emergency-option {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        gap: 1rem;
+    }
+
+    .emergency-option.disabled {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .emergency-option i {
+        font-size: 1.5rem;
+        color: #dc3545;
+    }
+
+    .emergency-option.disabled i {
+        color: #856404;
+    }
+
+    .option-details {
+        flex: 1;
+    }
+
+    .option-details h3 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .option-details p {
+        margin: 0.25rem 0 0;
+        color: #6c757d;
+    }
+
+    .call-btn {
+        padding: 0.5rem 1rem;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .call-btn.emergency {
+        background: #dc3545;
+    }
+
+    .call-btn:hover {
+        opacity: 0.9;
+    }
+
+    .phone-number {
+        margin-left: auto;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 2rem;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+    }
+
+    .modal-content h2 {
+        color: #333;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .close {
+        position: absolute;
+        right: 1.5rem;
+        top: 1rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .close:hover {
+        color: #333;
+    }
+
+    .emergency-option.disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .emergency-option.disabled:hover {
+        background-color: #f8f9fa;
+    }
+
+    .emergency-option .phone-number {
+        margin-left: auto;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .emergency-option .phone-number.warning {
+        color: #dc3545;
+    }
+
+    /* 为提示卡片和模态框添加新样式 */
+    .tip-content {
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .tip-category {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #2D8CFF;
+    }
+
+    .tip-category i {
+        font-size: 1.5rem;
+    }
+
+    .tip-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #333;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .tip-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+
+    .tip-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        background: #2D8CFF;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background-color 0.3s ease;
+    }
+
+    .tip-btn:hover {
+        background: #1a7ae8;
+    }
+
+    .tip-btn i {
+        font-size: 1rem;
+    }
+
+    #tipPreview {
+        min-height: 3em;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <a href="{{ url_for('dashboard') }}" class="nav-brand">
+        <i class="fas fa-heartbeat"></i>
+        JNU智慧康养平台
+    </a>
+    <div class="nav-links">
+        <div class="notifications-dropdown">
+            <button class="notification-btn" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notificationCount">0</span>
+            </button>
+            <div class="notifications-menu" id="notificationsMenu">
+                <div class="notifications-header">
+                    <h3>通知</h3>
+                    <button class="mark-all-read" onclick="markAllAsRead()">全部标记为已读</button>
+                </div>
+                <div class="notifications-list" id="notificationsList">
+                    <!-- 通知将在此处填充 -->
+                    <div class="no-notifications">暂无新通知</div>
+                </div>
+            </div>
+        </div>
+        <a href="{{ url_for('profile') }}" class="nav-link">个人资料</a>
+        <a href="{{ url_for('logout') }}" class="nav-link">退出登录</a>
+    </div>
+</nav>
+
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h1>欢迎回来，{{ user.name }}！</h1>
+        <p>探索我们的服务，与您的社区保持联系。</p>
+    </div>
+
+    <div class="features-grid">
+        <!-- 社交活动卡片 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h3>社交活动</h3>
+            <p>参加社区活动，与他人建立联系。</p>
+            <a href="{{ url_for('social_events') }}" class="feature-btn">查看活动</a>
+        </div>
+
+        <!-- 学习角卡片 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3>学习角</h3>
+            <p>提升您的技术技能</p>
+            <a href="{{ url_for('learning_corner') }}" class="feature-btn">开始学习</a>
+        </div>
+
+        <!-- 财务管理卡片 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <h3>财务管理</h3>
+            <p>跟踪您的支出，有效管理财务。</p>
+            <a href="{{ url_for('finance_management') }}" class="feature-btn">管理财务</a>
+        </div>
+
+        <!-- 提醒卡片 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h3>提醒事项</h3>
+            <p>为重要任务和事务设置提醒。</p>
+            <a href="{{ url_for('reminders') }}" class="feature-btn">设置提醒</a>
+        </div>
+
+        <!-- 药品管理卡片 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-pills"></i>
+            </div>
+            <h3>药品管理</h3>
+            <p>跟踪您的药物并获取及时提醒。</p>
+            <a href="{{ url_for('medicine_management') }}" class="feature-btn">管理药品</a>
+        </div>
+
+        <!-- 每日提示卡片 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-lightbulb"></i>
+            </div>
+            <h3>每日提示</h3>
+            <p id="tipPreview">获取每日智慧和建议提示。</p>
+            <button onclick="showDailyTip()" class="feature-btn">获取今日提示</button>
+        </div>
+
+        <!-- AI 助手卡片 -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                 <i class="fas fa-robot"></i>
+            </div>
+            <h3>AI 健康助手</h3>
+            <p>随时向智能助手咨询健康与生活问题（Qwen）</p>
+            <a href="{{ url_for('assistant_chat') }}" class="feature-btn">开始对话</a>
+        </div>
+
+
+    </div>
+
+    <!-- 紧急求助按钮 -->
+    <button class="emergency-btn" onclick="showEmergencyOptions()">
+        <i class="fas fa-phone-alt"></i>
+        紧急求助
+    </button>
+</div>
+
+<!-- 紧急联系人模态框 -->
+<div id="emergencyModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>紧急联系选项</h2>
+        <div class="emergency-options">
+            {% if emergency_contact.phone %}
+            <div class="emergency-option">
+                <i class="fas fa-user"></i>
+                <div class="option-details">
+                    <h3>呼叫 {{ emergency_contact.name }}</h3>
+                    <p>{{ emergency_contact.phone }}</p>
+                </div>
+                <button onclick="callContact('{{ emergency_contact.phone }}', '{{ emergency_contact.name }}')"
+                    class="call-btn">
+                    <i class="fas fa-phone"></i> 呼叫
+                </button>
+            </div>
+            {% else %}
+            <div class="emergency-option disabled">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="option-details">
+                    <h3>未设置紧急联系人</h3>
+                    <p>请关联子女账户或在个人资料中更新紧急联系人信息</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="emergency-option">
+                <i class="fas fa-ambulance"></i>
+                <div class="option-details">
+                    <h3>呼叫紧急服务</h3>
+                    <p>112</p>
+                </div>
+                <button onclick="callContact('112', '紧急服务')" class="call-btn emergency">
+                    <i class="fas fa-phone"></i> 呼叫
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 每日提示模态框 -->
+<div id="tipModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTipModal()">&times;</span>
+        <h2>今日提示</h2>
+        <div class="tip-content">
+            <div class="tip-category">
+                <i id="tipIcon" class="fas fa-heartbeat"></i>
+                <span id="tipCategory">健康提示</span>
+            </div>
+            <p id="tipText" class="tip-text"></p>
+            <div class="tip-actions">
+                <button onclick="getNewTip()" class="tip-btn">
+                    <i class="fas fa-sync-alt"></i> 新提示
+                </button>
+                <button onclick="saveTip()" class="tip-btn">
+                    <i class="fas fa-bookmark"></i> 保存提示
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showEmergencyOptions() {
+        const modal = document.getElementById('emergencyModal');
+        modal.style.display = 'block';
+    }
+
+    function closeEmergencyModal() {
+        const modal = document.getElementById('emergencyModal');
+        modal.style.display = 'none';
+    }
+
+    function callChild(phoneNumber) {
+        if (phoneNumber) {
+            window.location.href = `tel:${phoneNumber}`;
+        } else {
+            showNoEmergencyContact();
+        }
+    }
+
+    function showNoEmergencyContact() {
+        alert('未设置紧急联系人。请在个人资料中更新紧急联系人信息或关联子女账户。');
+    }
+
+    function callEmergencyServices() {
+        if (confirm('确定要呼叫紧急服务 (112) 吗？')) {
+            window.location.href = 'tel:112';
+        }
+    }
+
+    // 点击外部关闭模态框
+    window.onclick = function (event) {
+        const modal = document.getElementById('emergencyModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // 通知功能
+    function toggleNotifications() {
+        const menu = document.getElementById('notificationsMenu');
+        menu.classList.toggle('show');
+    }
+
+    function markAllAsRead() {
+        // 在此处添加全部标记为已读的逻辑
+        const notifications = document.querySelectorAll('.notification-item');
+        notifications.forEach(notification => {
+            notification.classList.remove('unread');
+        });
+        updateNotificationCount(0);
+    }
+
+    function updateNotificationCount(count) {
+        const badge = document.getElementById('notificationCount');
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'block' : 'none';
+    }
+
+    // 点击外部关闭通知
+    document.addEventListener('click', function (event) {
+        const menu = document.getElementById('notificationsMenu');
+        const btn = document.querySelector('.notification-btn');
+        if (!menu.contains(event.target) && !btn.contains(event.target)) {
+            menu.classList.remove('show');
+        }
+    });
+
+    // 示例通知数据（替换为您的实际数据）
+    const notifications = [
+        {% if today_medicines %}
+    {% for medicine in today_medicines %}
+    {
+        id: "medicine_{{ loop.index }}",
+            message: "药品提醒：{{ medicine.medicine_name }} 在 {{ medicine.time }} 服用",
+                time: "今天",
+                    type: "medicine",
+                        unread: true
+    },
+    {% endfor %}
+    {% endif %}
+    {% if upcoming_reminders %}
+    {% for reminder in upcoming_reminders %}
+    {
+        id: "reminder_{{ loop.index }}",
+            message: "提醒：{{ reminder.title }} 在 {{ reminder.date }} {{ reminder.time }}",
+                time: "即将到来",
+                    type: "reminder",
+                        unread: true
+    },
+    {% endfor %}
+    {% endif %}
+    {% if upcoming_bills %}
+    {% for bill in upcoming_bills %}
+    {
+        id: "bill_{{ loop.index }}",
+            message: "账单到期：{{ bill.name }} - ₹{{ bill.amount }} 在 {{ bill.due_date }} 到期",
+                time: "即将到期",
+                    type: "bill",
+                        unread: true
+    },
+    {% endfor %}
+    {% endif %}
+    ];
+
+    // 填充通知
+    function populateNotifications() {
+        const list = document.getElementById('notificationsList');
+        const noNotifications = document.querySelector('.no-notifications');
+
+        if (notifications.length === 0) {
+            noNotifications.style.display = 'block';
+            return;
+        }
+
+        noNotifications.style.display = 'none';
+        list.innerHTML = notifications.map(notification => `
+            <div class="notification-item ${notification.unread ? 'unread' : ''}" onclick="markAsRead('${notification.id}')">
+                <div class="notification-content">
+                    <p>${notification.message}</p>
+                    <span class="notification-time">${notification.time}</span>
+                </div>
+                ${notification.unread ? '<div class="unread-dot"></div>' : ''}
+            </div>
+        `).join('');
+
+        updateNotificationCount(notifications.filter(n => n.unread).length);
+    }
+
+    function markAsRead(id) {
+        const notification = notifications.find(n => n.id === id);
+        if (notification) {
+            notification.unread = false;
+            populateNotifications();
+        }
+    }
+
+    // 初始化通知
+    populateNotifications();
+
+    function callContact(phoneNumber, contactType) {
+        if (confirm(`确定要呼叫 ${contactType} 吗？`)) {
+            // 创建紧急日志
+            fetch('/create-emergency-log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contact_type: contactType,
+                    phone_number: phoneNumber
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = `tel:${phoneNumber}`;
+                    } else {
+                        alert('创建紧急日志时出错。请重试。');
+                    }
+                })
+                .catch(error => {
+                    console.error('错误：', error);
+                    alert('创建紧急日志时出错。请重试。');
+                });
+        }
+    }
+
+    // 为提示功能添加新函数
+    const tipCategories = {
+        health: {
+            icon: 'fa-heartbeat',
+            tips: [
+                "保持水分！每天喝8杯水。",
+                "定时起身活动 - 每30分钟站起来伸展一下。",
+                "每天练习5分钟深呼吸以减轻压力。",
+                "在日常饮食中加入更多水果和蔬菜。",
+                "获得7-8小时的睡眠以获得最佳健康。",
+                "定期散步可以改善心脏健康和情绪。",
+                "通过拼图或阅读保持思维活跃。",
+                "坐着时保持良好的姿势以防止背痛。"
+            ]
+        },
+        tech: {
+            icon: 'fa-laptop',
+            tips: [
+                "在智能手机上使用语音命令以便更轻松地导航。",
+                "启用双重认证以获得更好的安全性。",
+                "保持应用程序和软件更新以获得更好的性能。",
+                "使用密码管理器安全存储您的密码。",
+                "学习使用视频通话应用程序与家人保持联系。",
+                "在智能手机上启用紧急SOS功能。",
+                "使用数字日历进行药物提醒。",
+                "探索设备上的辅助功能以获得更好的可用性。"
+            ]
+        },
+        platform: {
+            icon: 'fa-info-circle',
+            tips: [
+                "您可以在个人资料中设置多个紧急联系人。",
+                "使用日历功能安排所有约会。",
+                "启用通知以不错过重要提醒。",
+                "与家庭成员联系以分享您的健康更新。",
+                "使用财务跟踪器监控您的月度支出。",
+                "参加社区活动以保持社交活跃。",
+                "查看学习角获取新的技术教程。",
+                "定期更新您的药物计划以获得准确的提醒。"
+            ]
+        },
+        news: {
+            icon: 'fa-newspaper',
+            tips: [
+                "了解当地老年人计划和福利的最新信息。",
+                "查看可能对您有益的新医疗保健政策。",
+                "关注可靠的健康新闻来源以获取准确信息。",
+                "跟踪养老金和福利的重要日期。",
+                "了解您所在地区的社区活动。",
+                "了解为老年人设计的新技术。",
+                "关注老年人友好公共服务的最新信息。",
+                "了解天气警报和健康建议的最新信息。"
+            ]
+        }
+    };
+
+    let currentTip = null;
+    let savedTips = [];
+
+    function showDailyTip() {
+        const modal = document.getElementById('tipModal');
+        modal.style.display = 'block';
+        if (!currentTip) {
+            getNewTip();
+        }
+    }
+
+    function closeTipModal() {
+        const modal = document.getElementById('tipModal');
+        modal.style.display = 'none';
+    }
+
+    function getNewTip() {
+        const categories = Object.keys(tipCategories);
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+        const categoryTips = tipCategories[randomCategory].tips;
+        const randomTip = categoryTips[Math.floor(Math.random() * categoryTips.length)];
+
+        currentTip = {
+            category: randomCategory,
+            text: randomTip
+        };
+
+        updateTipDisplay();
+    }
+
+    function updateTipDisplay() {
+        if (currentTip) {
+            const category = tipCategories[currentTip.category];
+            document.getElementById('tipIcon').className = `fas ${category.icon}`;
+            document.getElementById('tipCategory').textContent =
+                currentTip.category.charAt(0).toUpperCase() + currentTip.category.slice(1) + ' 提示';
+            document.getElementById('tipText').textContent = currentTip.text;
+            document.getElementById('tipPreview').textContent = currentTip.text;
+        }
+    }
+
+    function saveTip() {
+        if (currentTip && !savedTips.some(tip => tip.text === currentTip.text)) {
+            savedTips.push(currentTip);
+            // 在此处添加将提示保存到后端的代码
+            alert('提示保存成功！');
+        } else {
+            alert('此提示已保存！');
+        }
+    }
+
+    // 页面加载时初始化随机提示
+    document.addEventListener('DOMContentLoaded', function () {
+        getNewTip();
+    });
+
+    // 点击外部关闭提示模态框
+    window.onclick = function (event) {
+        const tipModal = document.getElementById('tipModal');
+        const emergencyModal = document.getElementById('emergencyModal');
+        if (event.target == tipModal) {
+            tipModal.style.display = 'none';
+        }
+        if (event.target == emergencyModal) {
+            emergencyModal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

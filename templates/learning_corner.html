@@ -1,0 +1,642 @@
+{% extends "base.html" %}
+
+{% block title %}学习角 - JNU智慧康养平台{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/learning_corner.css') }}">
+<style>
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2D8CFF;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .nav-brand:hover {
+        color: #1a7ae8;
+    }
+
+    .nav-brand i {
+        font-size: 1.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <a href="{{ url_for('dashboard') }}" class="nav-brand">
+        <i class="fas fa-heartbeat"></i>
+        JNU智慧康养平台
+    </a>
+    <div class="nav-links">
+        <a href="{{ url_for('dashboard') }}" class="nav-link">主界面</a>
+        <a href="{{ url_for('profile') }}" class="nav-link">个人资料</a>
+        <a href="{{ url_for('logout') }}" class="nav-link">退出登录</a>
+    </div>
+</nav>
+
+<div class="learning-corner-container">
+    <div class="welcome-section">
+        <h1>欢迎来到学习角</h1>
+        <p>探索我们全面的指南和教程，提升您的数字技能。</p>
+
+        <!-- 搜索栏部分 -->
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="搜索主题、功能或技能...">
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="my-requests-btn" onclick="showMyRequests()">
+                <i class="fas fa-list"></i> 我的请求
+            </button>
+        </div>
+    </div>
+
+    <!-- 我的请求部分 -->
+    <div id="myRequestsSection" class="my-requests-section" style="display: none;">
+        <div class="section-header">
+            <h2>我的教程请求</h2>
+            <button class="close-btn" onclick="hideMyRequests()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="requests-container">
+            {% for request in user_requests %}
+            <div class="request-card">
+                <div class="request-header">
+                    <h3>{{ request.topic }}</h3>
+                    <span class="status-badge status-{{ request.status }}">
+                        {{ request.status|title }}
+                    </span>
+                </div>
+                <div class="request-details">
+                    <p><strong>分类：</strong> {{ request.category }}</p>
+                    <p><strong>难度：</strong> {{ request.difficulty }}</p>
+                    <p><strong>平台：</strong> {{ request.platform }}</p>
+                    <p><strong>提交时间：</strong> {{ request.created_at.strftime('%Y年%m月%d日 %H:%M') }}</p>
+                </div>
+                <div class="request-description">
+                    <p><strong>描述：</strong></p>
+                    <p>{{ request.description }}</p>
+                    {% if request.additional_notes %}
+                    <p><strong>附加说明：</strong></p>
+                    <p>{{ request.additional_notes }}</p>
+                    {% endif %}
+                </div>
+                {% if request.admin_notes %}
+                <div class="admin-response">
+                    <p><strong>管理员回复：</strong></p>
+                    <p>{{ request.admin_notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <style>
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .my-requests-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .my-requests-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .my-requests-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.5rem;
+        }
+
+        .close-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .requests-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .request-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .request-header h3 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .request-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .request-description {
+            margin-bottom: 1rem;
+        }
+
+        .admin-response {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-in-progress {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 1.5rem auto;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-top: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .search-result-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-result-item h4 {
+            color: var(--primary-color);
+            margin: 0 0 0.5rem 0;
+        }
+
+        .search-result-item p {
+            margin: 0 0 0.5rem 0;
+            color: #666;
+        }
+
+        .result-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .result-topics .topic-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .no-results-message {
+            padding: 1.5rem;
+            text-align: center;
+            color: #666;
+        }
+
+        .no-results-message h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-results-message p {
+            margin-bottom: 1rem;
+        }
+
+        .request-suggestion-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .request-suggestion-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <div class="topics-grid">
+
+        <!-- 哔哩哔哩 卡片 -->
+        <div class="topic-card" data-topics="视频观看 收藏 播放列表 成为up主"
+            data-href="https://www.bilibili.com/video/BV1Ci4y127C2/?spm_id_from=333.337.search-card.all.click&vd_source=5bf3cdf9abb5b6bbf405417357d5e5b5">
+            <div class="topic-icon">
+                <i class="fab fa-youtube"></i>
+            </div>
+            <h3>Bilibili 指南</h3>
+            <p>掌握 bilibili - 从观看视频到成为up主。</p>
+            <div class="topic-topics">
+                <span class="topic-tag">视频观看</span>
+                <span class="topic-tag">收藏</span>
+                <span class="topic-tag">播放列表</span>
+                <span class="topic-tag">成为up主</span>
+            </div>
+        </div>
+
+        <!-- 在线支付卡片 -->
+        <div class="topic-card" data-topics="扫码支付 小程序支付 公众号支付 刷脸支付 安全设置"
+            data-href="https://pay.weixin.qq.com">
+            <div class="topic-icon">
+                <i class="fab fa-weixin"></i>
+            </div>
+            <h3>微信支付指南</h3>
+            <p>学习使用微信支付进行扫码付款、转账收款等操作。</p>
+            <div class="topic-topics">
+                <span class="topic-tag">扫码支付</span>
+                <span class="topic-tag">转账收款</span>
+                <span class="topic-tag">小程序支付</span>
+                <span class="topic-tag">安全设置</span>
+                <span class="topic-tag">账单管理</span>
+            </div>
+        </div>
+
+        <div class="topic-card" data-topics="扫码支付 转账 余额宝 花呗 芝麻信用"
+            data-href="https://open.alipay.com">
+                <div class="topic-icon">
+                <i class="fab fa-alipay"></i>
+            </div>
+            <h3>支付宝指南</h3>
+            <p>掌握支付宝支付、转账、理财等全方位功能。</p>
+            <div class="topic-topics">
+                <span class="topic-tag">扫码支付</span>
+                <span class="topic-tag">转账功能</span>
+                <span class="topic-tag">余额宝</span>
+                <span class="topic-tag">花呗</span>
+                <span class="topic-tag">芝麻信用</span>
+            </div>
+        </div>
+        <!-- 智能手机基础卡片 -->
+        <div class="topic-card" data-topics="设置 应用 相机 安全"
+            data-href="https://www.bilibili.com/video/BV1P31BBbEb5/?spm_id_from=333.337.search-card.all.click&vd_source=5bf3cdf9abb5b6bbf405417357d5e5b5">
+            <div class="topic-icon">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h3>智能手机最新功能</h3>
+            <p>日常使用智能手机的基本技能和最新功能。</p>
+            <div class="topic-topics">
+                <span class="topic-tag">设置</span>
+                <span class="topic-tag">应用</span>
+                <span class="topic-tag">相机</span>
+                <span class="topic-tag">安全</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 请求教程模态框 -->
+<div id="requestModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>请求教程</h2>
+            <span class="close-modal" onclick="closeRequestModal()">&times;</span>
+        </div>
+        <form id="tutorialRequestForm" action="{{ url_for('submit_tutorial_request') }}" method="POST">
+            <div class="form-group">
+                <label for="topic">主题标题*</label>
+                <input type="text" id="topic" name="topic" required placeholder="例如：如何使用 Instagram Reels">
+            </div>
+
+            <div class="form-group">
+                <label for="category">分类*</label>
+                <select id="category" name="category" required>
+                    <option value="">选择分类</option>
+                    <option value="social_media">社交媒体</option>
+                    <option value="messaging">消息应用</option>
+                    <option value="video_calls">视频通话</option>
+                    <option value="payments">在线支付</option>
+                    <option value="smartphone">智能手机基础</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">详细描述*</label>
+                <textarea id="description" name="description" required
+                    placeholder="请详细描述您想学习的内容。例如：'我想学习如何创建和分享 Instagram Reels，包括添加音乐和特效。'"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="difficulty">难度级别*</label>
+                <select id="difficulty" name="difficulty" required>
+                    <option value="beginner">初级</option>
+                    <option value="intermediate">中级</option>
+                    <option value="advanced">高级</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="platform">平台/设备*</label>
+                <input type="text" id="platform" name="platform" required
+                    placeholder="例如：iPhone 12、安卓手机、Windows 电脑">
+            </div>
+
+            <div class="form-group">
+                <label for="additional_notes">附加说明</label>
+                <textarea id="additional_notes" name="additional_notes"
+                    placeholder="您想提到的任何具体要求或偏好"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="closeRequestModal()">取消</button>
+                <button type="submit" class="submit-btn">提交请求</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 为主题卡片添加点击处理程序
+    document.querySelectorAll('.topic-card').forEach(card => {
+        card.addEventListener('click', function () {
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+
+        // 现有的悬停效果
+        card.addEventListener('mouseenter', function () {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.2)';
+        });
+
+        card.addEventListener('mouseleave', function () {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+        });
+    });
+
+    // 搜索功能
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const cards = document.querySelectorAll('.topic-card');
+
+    searchInput.addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        searchResults.innerHTML = '';
+
+        if (searchTerm.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        const matches = [];
+        cards.forEach(card => {
+            const title = card.querySelector('h3').textContent.toLowerCase();
+            const description = card.querySelector('p').textContent.toLowerCase();
+            const topics = card.getAttribute('data-topics').toLowerCase();
+
+            if (title.includes(searchTerm) ||
+                description.includes(searchTerm) ||
+                topics.includes(searchTerm)) {
+                matches.push({
+                    title: card.querySelector('h3').textContent,
+                    description: card.querySelector('p').textContent,
+                    topics: card.getAttribute('data-topics'),
+                    element: card
+                });
+            }
+        });
+
+        if (matches.length > 0) {
+            searchResults.style.display = 'block';
+            matches.forEach(match => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
+                    <h4>${match.title}</h4>
+                    <p>${match.description}</p>
+                    <div class="result-topics">
+                        ${match.topics.split(' ').map(topic =>
+                    `<span class="topic-tag">${topic}</span>`
+                ).join('')}
+                    </div>
+                `;
+                resultItem.addEventListener('click', () => {
+                    match.element.click();
+                });
+                searchResults.appendChild(resultItem);
+            });
+        } else {
+            // 显示无结果消息和建议
+            searchResults.style.display = 'block';
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.className = 'no-results-message';
+            noResultsDiv.innerHTML = `
+                <h4>未找到匹配的主题</h4>
+                <p>我们找不到与"${searchTerm}"匹配的主题</p>
+                <button class="request-suggestion-btn" onclick="openRequestModal()">
+                    <i class="fas fa-plus-circle"></i> 请求教程
+                </button>
+            `;
+            searchResults.appendChild(noResultsDiv);
+        }
+    });
+
+    // 点击外部时关闭搜索结果
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // 模态框功能
+    function openRequestModal() {
+        document.getElementById('requestModal').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRequestModal() {
+        document.getElementById('requestModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // 点击外部关闭模态框
+    window.onclick = function (event) {
+        const modal = document.getElementById('requestModal');
+        if (event.target == modal) {
+            closeRequestModal();
+        }
+    }
+
+    // 表单提交处理
+    document.getElementById('tutorialRequestForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // 显示加载状态
+        const submitBtn = this.querySelector('.submit-btn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+        submitBtn.disabled = true;
+
+        // 提交表单
+        fetch(this.action, {
+            method: 'POST',
+            body: new FormData(this)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('您的教程请求已成功提交！');
+                    closeRequestModal();
+                    this.reset();
+                } else {
+                    alert('提交请求时出错，请重试。');
+                }
+            })
+            .catch(error => {
+                alert('提交请求时出错，请重试。');
+            })
+            .finally(() => {
+                submitBtn.innerHTML = '提交请求';
+                submitBtn.disabled = false;
+            });
+    });
+
+    function showMyRequests() {
+        document.getElementById('myRequestsSection').style.display = 'block';
+        // 滚动到该部分
+        document.getElementById('myRequestsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideMyRequests() {
+        document.getElementById('myRequestsSection').style.display = 'none';
+    }
+</script>
+{% endblock %}

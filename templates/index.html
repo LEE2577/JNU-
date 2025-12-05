@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JNU智慧康养平台</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💙</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">JNU智慧康养平台</h1>
+            <p class="hero-subtitle">科技赋能康养，关爱直达心间！</p>
+            <div class="cta-buttons">
+                <a href="{{ url_for('register') }}" class="cta-button primary-button">注册</a>
+                <a href="{{ url_for('login') }}" class="cta-button secondary-button">登录</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="features-grid">
+            <!-- Social Events Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="feature-title">社交活动与社区娱乐</h3>
+                <p class="feature-description">与同龄人联系，参与专为老年人设计的社区活动。</p>
+            </div>
+
+            <!-- Learning Corner Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-laptop-code"></i>
+                </div>
+                <h3 class="feature-title">教程</h3>
+                <p class="feature-description">通过我们的教程快速掌握使用方法。</p>
+            </div>
+
+            <!-- Finance Manager Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3 class="feature-title">个人财务管理</h3>
+                <p class="feature-description">通过我们帮助您跟踪财务支出与管理账单。</p>
+            </div>
+
+            <!-- Emergency Help Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <h3 class="feature-title">紧急求助</h3>
+                <p class="feature-description">通过实时位置共享快速访问紧急服务，获得即时援助。</p>
+            </div>
+
+            <!-- Family Integration Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h3 class="feature-title">家庭</h3>
+                <p class="feature-description">通过我们的平台快速地与您家人联系。</p>
+            </div>
+
+            <!-- Profile Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h3 class="feature-title">个人信息</h3>
+                <p class="feature-description">我们将为您提供先进的隐私安全管理。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Emergency Button -->
+    <a href="#" class="emergency-button" id="emergencyButton">
+        <i class="fas fa-phone-alt"></i>
+    </a>
+
+    <script>
+        // Emergency Button Click Handler
+        document.getElementById('emergencyButton').addEventListener('click', function (e) {
+            e.preventDefault();
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    // 发送地址
+                    alert('已通知紧急服务您的位置。救援正在路上！');
+                }, function (error) {
+                    alert('无法获取您的位置。请直接拨打紧急服务电话。');
+                });
+            } else {
+                alert('您的浏览器不支持地理位置功能。请直接拨打紧急服务电话。');
+            }
+        });
+    </script>
+</body>
+
+</html>

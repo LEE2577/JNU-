@@ -1,0 +1,549 @@
+{% extends "base.html" %}
+
+{% block title %}社交活动 - JNU智慧康养平台{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/social_events.css') }}">
+    <style>
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2D8CFF;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .nav-brand:hover {
+        color: #1a7ae8;
+    }
+
+    .nav-brand i {
+        font-size: 1.8rem;
+    }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 2rem;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .join-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .join-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .leave-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .leave-btn:hover {
+            background: #c82333;
+        }
+
+    .events-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .events-header h1 {
+        color: var(--text-color);
+        margin-bottom: 1rem;
+    }
+
+    .events-description {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .create-event-btn {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .create-event-btn:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .create-event-btn i {
+        font-size: 1.1rem;
+    }
+
+    .modal-content button[type="submit"] {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: 100%;
+    }
+
+    .modal-content button[type="submit"]:hover {
+        background-color: var(--secondary-color);
+    }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <nav class="navbar">
+    <a href="{{ url_for('dashboard') }}" class="nav-brand">
+        <i class="fas fa-heartbeat"></i>
+        JNU智慧康养平台
+    </a>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="nav-link">主页</a>
+            <a href="{{ url_for('profile') }}" class="nav-link">个人资料</a>
+            <a href="{{ url_for('logout') }}" class="nav-link">退出登录</a>
+        </div>
+    </nav>
+
+    <div id="notification" class="notification"></div>
+
+    <div class="events-container">
+        <div class="events-header">
+            <h1>社交活动与社区娱乐</h1>
+        <p class="events-description">参加社区活动，与您所在地区的其他人建立联系。</p>
+            <button class="create-event-btn" id="createEventBtn">
+                <i class="fas fa-plus"></i> 组织活动
+            </button>
+        </div>
+
+        <!-- 我组织的活动部分 -->
+        {% if my_events %}
+        <div class="events-section">
+            <h2>我组织的活动</h2>
+            <div class="events-grid">
+                {% for event in my_events %}
+                <div class="event-card">
+                    <div class="event-header">
+                        <h3><a href="{{ url_for('view_event', event_id=event._id) }}" class="event-title">{{ event.name
+                                }}</a></h3>
+                        <span class="event-date">
+                            <i class="far fa-calendar"></i> {{ event.datetime.strftime('%Y年%m月%d日') }}
+                        </span>
+                    </div>
+                    <div class="event-details">
+                        <p class="event-description">{{ event.description }}</p>
+                        <div class="event-info">
+                            <span class="event-time">
+                                <i class="far fa-clock"></i> {{ event.datetime.strftime('%H:%M') }}
+                            </span>
+                            <span class="event-location">
+                                <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                            </span>
+                        </div>
+                        <div class="event-participants">
+                            <span class="participants-count">
+                                <i class="fas fa-users"></i> {{ event.participants|length }} /
+                                {% if event.max_participants %}
+                                {{ event.max_participants }}
+                                {% else %}
+                                无限制
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="event-actions">
+                        <a href="{{ url_for('view_event', event_id=event._id) }}" class="btn">查看详情</a>
+                        <button class="delete-btn" onclick="deleteEvent('{{ event._id }}')">删除活动</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 所有活动部分 -->
+        <div class="events-section">
+            <h2>所有活动</h2>
+            {% if events %}
+            <div class="events-grid">
+                {% for event in events %}
+                <div class="event-card">
+                    <div class="event-header">
+                        <h3><a href="{{ url_for('view_event', event_id=event._id) }}" class="event-title">{{ event.name
+                                }}</a></h3>
+                        <span class="event-date">
+                            <i class="far fa-calendar"></i> {{ event.datetime.strftime('%Y年%m月%d日') }}
+                        </span>
+                    </div>
+                    <div class="event-details">
+                        <p class="event-description">{{ event.description }}</p>
+                        <div class="event-info">
+                            <span class="event-time">
+                                <i class="far fa-clock"></i> {{ event.datetime.strftime('%H:%M') }}
+                            </span>
+                            <span class="event-location">
+                                <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                            </span>
+                            <span class="event-organizer">
+                                <i class="fas fa-user"></i> 组织者：{{ event.organizer_name }}
+                            </span>
+                        </div>
+                        <div class="event-participants">
+                            <span class="participants-count">
+                                <i class="fas fa-users"></i> {{ event.participants|length }} /
+                                {% if event.max_participants %}
+                                {{ event.max_participants }}
+                                {% else %}
+                                无限制
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="event-actions">
+                        {% if event.organizer_id == session['user_id'] %}
+                        <button class="delete-btn" onclick="deleteEvent('{{ event._id }}')">删除活动</button>
+                        {% elif event._id not in user_participating_events %}
+                        <button class="btn join-btn" onclick="joinEvent('{{ event._id }}')">参加活动</button>
+                        {% else %}
+                        <button class="btn leave-btn" onclick="leaveEvent('{{ event._id }}')">退出活动</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-events">
+                <p>当前没有可用的活动。成为第一个组织活动的人！</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 活动创建模态框 -->
+        <div id="eventModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>组织新活动</h2>
+                <form id="eventForm" action="{{ url_for('create_event') }}" method="POST">
+                    <div class="form-group">
+                        <label for="eventName">活动名称</label>
+                        <input type="text" id="eventName" name="eventName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventDescription">活动描述</label>
+                        <textarea id="eventDescription" name="eventDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventDate">活动日期</label>
+                        <input type="date" id="eventDate" name="eventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventTime">活动时间</label>
+                        <input type="time" id="eventTime" name="eventTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">活动地点</label>
+                        <input type="text" id="location" name="location" required placeholder="请输入活动地点">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxParticipants">最大参与人数</label>
+                        <input type="number" id="maxParticipants" name="maxParticipants" min="1" value="10" required>
+                    </div>
+                    <button type="submit" class="btn">创建活动</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .events-section {
+            margin-bottom: 3rem;
+        }
+
+        .events-section h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            font-size: 1.8rem;
+        }
+
+        .no-events {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .no-events p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .view-btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .view-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 15px;
+            position: relative;
+            margin-bottom: 5%;
+        }
+
+        .form-text {
+            display: block;
+            margin-top: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .location-options {
+            margin-top: 0.5rem;
+        }
+
+        .form-actions {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 10% auto;
+                padding: 1.5rem;
+                width: 95%;
+            }
+        }
+    </style>
+
+    <script>
+        // 页面加载时显示任何待处理的通知
+        {% if notifications %}
+        {% for notification in notifications %}
+        showNotification('{{ notification.message }}', '{{ notification.type }}');
+        {% endfor %}
+        {% endif %}
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+
+            // 根据类型更新通知样式
+            if (type === 'error') {
+                notification.style.background = '#dc3545';
+            } else {
+                notification.style.background = '#28a745';
+            }
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function joinEvent(eventId) {
+            fetch(`/event/join/${eventId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('成功参加活动！');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification(data.message || '参加活动时出错', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('错误：', error);
+                    showNotification('参加活动时出错', 'error');
+                });
+        }
+
+        function leaveEvent(eventId) {
+            if (confirm('确定要退出这个活动吗？')) {
+                fetch(`/event/leave/${eventId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('成功退出活动');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(data.message || '退出活动时出错', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('错误：', error);
+                        showNotification('退出活动时出错', 'error');
+                    });
+            }
+        }
+
+        function deleteEvent(eventId) {
+            if (confirm('确定要删除这个活动吗？此操作无法撤销。')) {
+                fetch(`/event/delete/${eventId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('活动删除成功');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(data.message || '删除活动时出错', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('错误：', error);
+                        showNotification('删除活动时出错', 'error');
+                    });
+            }
+        }
+
+        // 模态框功能
+        const modal = document.getElementById('eventModal');
+        const btn = document.getElementById('createEventBtn');
+        const span = document.getElementsByClassName('close')[0];
+
+        btn.onclick = function () {
+            modal.style.display = 'block';
+        }
+
+        span.onclick = function () {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 日期验证
+        const eventDate = document.getElementById('eventDate');
+        const today = new Date();
+        const minDate = new Date(today);
+        minDate.setDate(today.getDate() + 2);
+        const maxDate = new Date(today);
+        maxDate.setDate(today.getDate() + 7);
+
+        eventDate.min = minDate.toISOString().split('T')[0];
+        eventDate.max = maxDate.toISOString().split('T')[0];
+
+        // 时间验证
+        const eventTime = document.getElementById('eventTime');
+        eventTime.addEventListener('change', function () {
+            const time = this.value;
+            const [hours, minutes] = time.split(':');
+            if (hours < 5 || (hours == 22 && minutes > 0) || hours >= 23) {
+                alert('活动时间必须在早上5:00到晚上10:00之间');
+                this.value = '';
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+
+{% block title %}财务管理 - JNU智慧康养平台{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/guides.css') }}">
+<style>
+    .finance-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .finance-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .finance-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .finance-title i {
+        font-size: 2rem;
+        color: #2D8CFF;
+    }
+
+    .finance-description {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .expense-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .expense-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .expense-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .expense-card h2 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .expense-card i {
+        color: #2D8CFF;
+    }
+
+    .expense-card p {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .expense-card .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+    }
+
+    .expense-card .total-amount {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2D8CFF;
+    }
+
+    .expense-card .view-btn {
+        background: #2D8CFF;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+    .expense-card .view-btn:hover {
+        background: #1a7ae8;
+    }
+
+    .expense-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .expense-item:last-child {
+        border-bottom: none;
+    }
+
+    .expense-name {
+        font-weight: 500;
+    }
+
+    .expense-amount {
+        color: #2D8CFF;
+        font-weight: 600;
+    }
+
+    .add-expense-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #2D8CFF;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-top: 1rem;
+        transition: background 0.2s;
+    }
+
+    .add-expense-btn:hover {
+        background: #1a7ae8;
+    }
+
+    .expense-summary {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .summary-item {
+        text-align: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .summary-item h3 {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-item p {
+        color: #2D8CFF;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .summary-item .sub-text {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+
+    .summary-item.paid {
+        background: #f0fff4;
+    }
+
+    .summary-item.paid p {
+        color: #28a745;
+    }
+
+    .summary-item.pending {
+        background: #fff8e1;
+    }
+
+    .summary-item.pending p {
+        color: #ffc107;
+    }
+
+    .summary-item.total {
+        background: #e3f2fd;
+    }
+
+    .summary-item.total p {
+        color: #1976d2;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: #2D8CFF;
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+    }
+
+    .paid-expenses {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .paid-expenses h3 {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .paid-expenses-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .paid-expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    .paid-expense-name {
+        color: #666;
+    }
+
+    .paid-expense-amount {
+        color: #28a745;
+        font-weight: 500;
+    }
+
+    .paid-expense-date {
+        font-size: 0.8rem;
+        color: #999;
+    }
+
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2D8CFF;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .nav-brand:hover {
+        color: #1a7ae8;
+    }
+
+    .nav-brand i {
+        font-size: 1.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <a href="{{ url_for('dashboard') }}" class="nav-brand">
+        <i class="fas fa-heartbeat"></i>
+        JNU智慧康养平台
+    </a>
+    <div class="nav-links">
+        <a href="{{ url_for('dashboard') }}" class="nav-link">主界面</a>
+        <a href="{{ url_for('profile') }}" class="nav-link">个人资料</a>
+        <a href="{{ url_for('logout') }}" class="nav-link">退出登录</a>
+    </div>
+</nav>
+
+<div class="finance-container">
+    <div class="finance-header">
+        <div class="finance-title">
+            <i class="fas fa-wallet"></i>
+            <h1>财务管理</h1>
+        </div>
+        <p class="finance-description">有效跟踪和管理您的支出</p>
+    </div>
+
+    <div class="expense-sections">
+        <!-- 常规支出卡片 -->
+        <div class="expense-card">
+            <h2><i class="fas fa-shopping-cart"></i>常规支出</h2>
+            <p>跟踪您的日常支出，如食品杂货、交通和公用事业费用。</p>
+            <div class="card-footer">
+                <div class="total-amount">¥{{ regular_total }}</div>
+                <a href="{{ url_for('regular_expenses') }}" class="view-btn">查看详情</a>
+            </div>
+            {% if paid_regular_expenses %}
+            <div class="paid-expenses">
+                <h3>最近支付的支出</h3>
+                <ul class="paid-expenses-list">
+                    {% for expense in paid_regular_expenses %}
+                    <li class="paid-expense-item">
+                        <div>
+                            <div class="paid-expense-name">{{ expense.name }}</div>
+                            <div class="paid-expense-date">{{ expense.date.strftime('%Y年%m月%d日') }}</div>
+                        </div>
+                        <div class="paid-expense-amount">¥{{ expense.amount }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 固定支出卡片 -->
+        <div class="expense-card">
+            <h2><i class="fas fa-calendar-alt"></i>固定支出</h2>
+            <p>管理您的定期支出，如房租、保险和订阅服务。</p>
+            <div class="card-footer">
+                <div class="total-amount">¥{{ fixed_total }}</div>
+                <a href="{{ url_for('fixed_expenses') }}" class="view-btn">查看详情</a>
+            </div>
+            {% if paid_fixed_expenses %}
+            <div class="paid-expenses">
+                <h3>最近支付的支出</h3>
+                <ul class="paid-expenses-list">
+                    {% for expense in paid_fixed_expenses %}
+                    <li class="paid-expense-item">
+                        <div>
+                            <div class="paid-expense-name">{{ expense.name }}</div>
+                            <div class="paid-expense-date">支付于 {{ expense.paid_at.strftime('%Y年%m月%d日') }}</div>
+                        </div>
+                        <div class="paid-expense-amount">¥{{ expense.amount }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 月度摘要 -->
+    <div class="expense-summary">
+        <h2 class="summary-title">月度摘要</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <h3>常规支出总额</h3>
+                <p>¥{{ regular_total }}</p>
+                <div class="sub-text">本月</div>
+            </div>
+            <div class="summary-item">
+                <h3>固定支出总额</h3>
+                <p>¥{{ fixed_total }}</p>
+                <div class="sub-text">月度定期</div>
+            </div>
+            <div class="summary-item paid">
+                <h3>已支付常规支出</h3>
+                <p>¥{{ paid_regular_total }}</p>
+                <div class="sub-text">本月</div>
+            </div>
+            <div class="summary-item paid">
+                <h3>已支付固定支出</h3>
+                <p>¥{{ paid_fixed_total }}</p>
+                <div class="sub-text">本月</div>
+            </div>
+            <div class="summary-item pending">
+                <h3>待支付常规支出</h3>
+                <p>¥{{ pending_regular_total }}</p>
+                <div class="sub-text">本月</div>
+            </div>
+            <div class="summary-item pending">
+                <h3>待支付固定支出</h3>
+                <p>¥{{ pending_fixed_total }}</p>
+                <div class="sub-text">本月</div>
+            </div>
+            <div class="summary-item">
+                <h3>日均支出（常规）</h3>
+                <p>¥{{ daily_regular_average }}</p>
+                <div class="sub-text">每日平均</div>
+            </div>
+            <div class="summary-item">
+                <h3>日均支出（固定）</h3>
+                <p>¥{{ daily_fixed_average }}</p>
+                <div class="sub-text">每日平均</div>
+            </div>
+            <div class="summary-item total">
+                <h3>月度总支出</h3>
+                <p>¥{{ total_monthly_expenses }}</p>
+                <div class="sub-text">所有支出</div>
+            </div>
+            <div class="summary-item total">
+                <h3>总支付金额</h3>
+                <p>¥{{ total_paid_expenses }}</p>
+                <div class="sub-text">本月</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加支出模态框 -->
+<div id="expenseModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">添加新支出</h2>
+        <form id="expenseForm">
+            <div class="form-group">
+                <label for="expenseName">支出名称</label>
+                <input type="text" id="expenseName" required>
+            </div>
+            <div class="form-group">
+                <label for="expenseAmount">金额（¥）</label>
+                <input type="number" id="expenseAmount" required>
+            </div>
+            <div class="form-group">
+                <label for="expenseCategory">分类</label>
+                <select id="expenseCategory" required>
+                    <option value="">选择分类</option>
+                    <option value="groceries">食品杂货</option>
+                    <option value="transportation">交通</option>
+                    <option value="utilities">公用事业</option>
+                    <option value="entertainment">娱乐</option>
+                    <option value="rent">房租</option>
+                    <option value="insurance">保险</option>
+                    <option value="tax">税费</option>
+                    <option value="subscription">订阅服务</option>
+                    <option value="healthcare">医疗保健</option>
+                    <option value="clothing">服装</option>
+                    <option value="education">教育</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="expenseDate">日期</label>
+                <input type="date" id="expenseDate" required>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存支出</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openModal(type) {
+        const modal = document.getElementById('expenseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        modalTitle.textContent = type === 'regular' ? '添加常规支出' : '添加固定支出';
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('expenseModal');
+        modal.style.display = 'none';
+    }
+
+    document.getElementById('expenseForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        // 这里通常会发送表单数据到后端
+        closeModal();
+    });
+
+    // 点击外部关闭模态框
+    window.onclick = function (event) {
+        const modal = document.getElementById('expenseModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+</script>
+{% endblock %}

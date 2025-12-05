@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}常规支出 - JNU智慧康养平台{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/guides.css') }}">
+<style>
+    .expenses-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .expenses-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .expenses-title {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .expenses-title i {
+        font-size: 2rem;
+        color: #2D8CFF;
+    }
+
+    .expenses-description {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .expenses-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .add-expense-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .expenses-list-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #2D8CFF;
+        outline: none;
+    }
+
+    .form-group textarea {
+        height: 100px;
+        resize: vertical;
+    }
+
+    .submit-btn {
+        background: #2D8CFF;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s;
+        width: 100%;
+    }
+
+    .submit-btn:hover {
+        background: #1a7ae8;
+    }
+
+    .expenses-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #eee;
+        transition: background 0.3s;
+    }
+
+    .expense-item:hover {
+        background: #f8f9fa;
+    }
+
+    .expense-details {
+        flex: 1;
+    }
+
+    .expense-name {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.25rem;
+    }
+
+    .expense-description {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .expense-amount {
+        font-weight: 600;
+        color: #2D8CFF;
+        margin-left: 1rem;
+    }
+
+    .expense-date {
+        font-size: 0.8rem;
+        color: #999;
+        margin-top: 0.25rem;
+    }
+
+    .expense-summary {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .summary-title {
+        font-size: 1.2rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .summary-item {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .summary-item h3 {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-item p {
+        color: #2D8CFF;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+        text-decoration: none;
+        margin-bottom: 1rem;
+        transition: color 0.3s;
+    }
+
+    .back-btn:hover {
+        color: #2D8CFF;
+    }
+
+    .delete-btn {
+        color: #dc3545;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        margin-left: 1rem;
+        transition: color 0.3s;
+    }
+
+    .delete-btn:hover {
+        color: #c82333;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .chart-title {
+        font-size: 1.2rem;
+        color: #333;
+        margin: 0;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 400px;
+        margin: 1rem 0;
+    }
+
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 4px;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+    }
+
+    .legend-text {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .legend-amount {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .legend-percentage {
+        font-size: 0.8rem;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="navbar">
+    <div class="nav-brand">JNU智慧康养平台</div>
+    <div class="nav-links">
+        <a href="{{ url_for('dashboard') }}" class="nav-link">主界面</a>
+        <a href="{{ url_for('profile') }}" class="nav-link">个人资料</a>
+        <a href="{{ url_for('logout') }}" class="nav-link">退出登录</a>
+    </div>
+</nav>
+
+<div class="expenses-container">
+    <a href="{{ url_for('finance_management') }}" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        返回财务管理
+    </a>
+
+    <div class="expenses-header">
+        <div class="expenses-title">
+            <i class="fas fa-shopping-cart"></i>
+            <h1>常规支出</h1>
+        </div>
+        <p class="expenses-description">跟踪您的日常支出，有效管理预算</p>
+    </div>
+
+    <div class="expenses-grid">
+        <!-- 添加支出表单 -->
+        <div class="add-expense-section">
+            <h2>添加新支出</h2>
+            <form id="expenseForm" method="POST" action="{{ url_for('add_regular_expense') }}">
+                <div class="form-group">
+                    <label for="expenseName">支出名称</label>
+                    <input type="text" id="expenseName" name="expenseName" required>
+                </div>
+                <div class="form-group">
+                    <label for="expenseAmount">金额（¥）</label>
+                    <input type="number" id="expenseAmount" name="expenseAmount" required>
+                </div>
+                <div class="form-group">
+                    <label for="expenseCategory">分类</label>
+                    <select id="expenseCategory" name="expenseCategory" required>
+                        <option value="">选择分类</option>
+                        <option value="groceries">食品杂货</option>
+                        <option value="transportation">交通出行</option>
+                        <option value="utilities">公用事业</option>
+                        <option value="entertainment">娱乐休闲</option>
+                        <option value="dining">餐饮外卖</option>
+                        <option value="shopping">购物消费</option>
+                        <option value="healthcare">医疗保健</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expenseDescription">描述</label>
+                    <textarea id="expenseDescription" name="expenseDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="expenseDate">日期</label>
+                    <input type="date" id="expenseDate" name="expenseDate" required>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-plus"></i>
+                    添加支出
+                </button>
+            </form>
+        </div>
+
+        <!-- 支出列表 -->
+        <div class="expenses-list-section">
+            <h2>近期支出</h2>
+            <ul class="expenses-list">
+                {% for expense in expenses %}
+                <li class="expense-item">
+                    <div class="expense-details">
+                        <div class="expense-name">{{ expense.name }}</div>
+                        <div class="expense-description">{{ expense.description }}</div>
+                        <div class="expense-date">{{ expense.date.strftime('%Y年%m月%d日') }}</div>
+                    </div>
+                    <div class="expense-amount">¥{{ expense.amount }}</div>
+                    <button class="delete-btn" onclick="deleteExpense('{{ expense._id }}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- 月度摘要 -->
+    <div class="expense-summary">
+        <h2 class="summary-title">月度摘要</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <h3>本月总支出</h3>
+                <p>¥{{ monthly_total }}</p>
+            </div>
+            <div class="summary-item">
+                <h3>日均支出</h3>
+                <p>¥{{ daily_average }}</p>
+            </div>
+            <div class="summary-item">
+                <h3>最高支出分类</h3>
+                <p>{{ highest_category }}</p>
+            </div>
+            <div class="summary-item">
+                <h3>剩余预算</h3>
+                <p>¥{{ remaining_budget }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分类支出图表 -->
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2 class="chart-title">支出分类分布</h2>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="expensePieChart"></canvas>
+        </div>
+        <div class="chart-legend" id="chartLegend">
+            <!-- 图例项将动态添加在这里 -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function deleteExpense(expenseId) {
+        if (confirm('确定要删除这条支出记录吗？')) {
+            fetch(`/delete-expense/${expenseId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('删除支出时出错: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('错误:', error);
+                    alert('删除支出时出错');
+                });
+        }
+    }
+
+    // 设置默认日期为今天
+    document.getElementById('expenseDate').valueAsDate = new Date();
+
+    // 格式化货币函数
+    function formatCurrency(amount) {
+        return '¥' + amount.toLocaleString('zh-CN', {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 2
+        });
+    }
+
+    // 计算百分比函数
+    function calculatePercentage(value, total) {
+        return ((value / total) * 100).toFixed(1);
+    }
+
+    // 生成随机颜色函数
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
+
+    // 初始化饼图
+    function initializePieChart() {
+        const ctx = document.getElementById('expensePieChart').getContext('2d');
+
+        // 从服务器获取分类数据
+        const categoryData = {{ category_data| tojson
+    }};
+    const totalAmount = {{ total_amount }};
+
+    // 准备图表数据
+    const labels = categoryData.map(item => item.category);
+    const data = categoryData.map(item => item.amount);
+    const backgroundColors = categoryData.map(() => getRandomColor());
+
+    // 创建饼图
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // 我们将创建自定义图例
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            const value = context.raw;
+                            const percentage = calculatePercentage(value, totalAmount);
+                            return `${context.label}: ${formatCurrency(value)} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 创建自定义图例
+    const legendContainer = document.getElementById('chartLegend');
+    categoryData.forEach((item, index) => {
+        const percentage = calculatePercentage(item.amount, totalAmount);
+        const legendItem = document.createElement('div');
+        legendItem.className = 'legend-item';
+        legendItem.innerHTML = `
+                <div class="legend-color" style="background-color: ${backgroundColors[index]}"></div>
+                <div class="legend-text">
+                    ${item.category}
+                    <div class="legend-amount">${formatCurrency(item.amount)}</div>
+                    <div class="legend-percentage">占总支出 ${percentage}%</div>
+                </div>
+            `;
+        legendContainer.appendChild(legendItem);
+    });
+    }
+
+    // 页面加载时初始化图表
+    document.addEventListener('DOMContentLoaded', function () {
+        initializePieChart();
+    });
+</script>
+{% endblock %}
