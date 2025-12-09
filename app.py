@@ -9,8 +9,8 @@ import os
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'  # 请更改为安全的密钥
-app.config['MONGO_URI'] = 'mongodb+srv://cylee2577_db_user:Chengyu2577@agewell.tuqhti5.mongodb.net/agewell_db?retryWrites=true&w=majority&appName=agewell'
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 
 mongo = PyMongo(app)
 
