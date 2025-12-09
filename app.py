@@ -88,6 +88,7 @@ def get_emergency_contact(user):
 
 @app.route('/')
 def index():
+    print(">>> 收到访问请求！正在处理...")
     if 'user_id' in session:
         try:
             user = mongo.db.users.find_one({'_id': ObjectId(session['user_id'])})
