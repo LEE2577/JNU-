@@ -12,6 +12,9 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 
+if not app.config["MONGO_URI"]:
+    raise ValueError("MONGO_URI 环境变量没有配置或为空!")
+
 mongo = PyMongo(app)
 
 # 验证MongoDB连接和集合
