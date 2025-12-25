@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Child Dashboard - AgeWell{% endblock %}
+{% block title %}子女主页 - JNU智慧康养平台{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
@@ -137,6 +137,7 @@
         padding: 0.25rem 0.75rem;
         border-radius: 20px;
         font-size: 0.85rem;
+        white-space: nowrap;
     }
 
     .status.upcoming {
@@ -153,6 +154,74 @@
         background: #fff3e0;
         color: #f57c00;
     }
+
+    .status.emergency {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+
+    .dashboard-container {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .nav-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+    }
+
+    .nav-link {
+        color: #666;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+    }
+
+    .nav-link:hover {
+        color: #2D8CFF;
+        background: #f5f9ff;
+    }
+
+    .no-data {
+        color: #999;
+        font-style: italic;
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+
+        .navbar {
+            padding: 1rem;
+        }
+
+        .activity-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .elder-details {
+            grid-template-columns: 1fr;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -160,50 +229,50 @@
 <nav class="navbar">
     <a href="{{ url_for('dashboard') }}" class="nav-brand">
         <i class="fas fa-heartbeat"></i>
-        AgeWell
+        JNU智慧康养平台
     </a>
     <div class="nav-links">
-        <a href="{{ url_for('profile') }}" class="nav-link">Profile</a>
-        <a href="{{ url_for('logout') }}" class="nav-link">Logout</a>
+        <a href="{{ url_for('profile') }}" class="nav-link">个人资料</a>
+        <a href="{{ url_for('logout') }}" class="nav-link">退出登录</a>
     </div>
 </nav>
 
 <div class="dashboard-container">
     {% if linked_elder %}
-    <!-- Elder Information Card -->
+    <!-- 长者信息卡片 -->
     <div class="elder-info-card">
         <div class="elder-info-header">
             <i class="fas fa-user"></i>
-            <h2>{{ linked_elder.name }}'s Information</h2>
+            <h2>{{ linked_elder.name }}的信息</h2>
         </div>
         <div class="elder-details">
             <div class="detail-item">
-                <label>Age</label>
-                <span>{{ linked_elder.age }} years</span>
+                <label>年龄</label>
+                <span>{{ linked_elder.age }} 岁</span>
             </div>
             <div class="detail-item">
-                <label>Phone</label>
+                <label>电话</label>
                 <span>{{ linked_elder.phone }}</span>
             </div>
             <div class="detail-item">
-                <label>Email</label>
+                <label>邮箱</label>
                 <span>{{ linked_elder.email }}</span>
             </div>
             <div class="detail-item">
-                <label>Address</label>
+                <label>地址</label>
                 <span>{{ linked_elder.address.street }}, {{ linked_elder.address.city }}</span>
             </div>
         </div>
     </div>
 
-    <!-- Activities Section -->
+    <!-- 活动信息区域 -->
     <div class="activity-section">
         <div class="activity-grid">
-            <!-- Events Card -->
+            <!-- 活动事件卡片 -->
             <div class="activity-card">
                 <div class="activity-header">
                     <i class="fas fa-calendar-alt"></i>
-                    <h3>Upcoming Events</h3>
+                    <h3>近期活动</h3>
                 </div>
                 <div class="activity-content">
                     {% if elder_events %}
@@ -212,23 +281,23 @@
                         <li class="activity-item">
                             <div>
                                 <strong>{{ event.name }}</strong>
-                                <div>{{ event.datetime.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                <div>{{ event.datetime.strftime('%Y年%m月%d日 %H:%M') }}</div>
                             </div>
-                            <span class="status upcoming">Upcoming</span>
+                            <span class="status upcoming">即将开始</span>
                         </li>
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <p>No upcoming events</p>
+                    <p class="no-data">暂无近期活动</p>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Medicines Card -->
+            <!-- 用药日程卡片 -->
             <div class="activity-card">
                 <div class="activity-header">
                     <i class="fas fa-pills"></i>
-                    <h3>Medicine Schedule</h3>
+                    <h3>今日用药</h3>
                 </div>
                 <div class="activity-content">
                     {% if today_medicines %}
@@ -240,22 +309,22 @@
                                 <div>{{ medicine.dosage }} - {{ medicine.time }}</div>
                             </div>
                             <span class="status {{ 'completed' if medicine.is_taken else 'pending' }}">
-                                {{ 'Taken' if medicine.is_taken else 'Pending' }}
+                                {{ '已服用' if medicine.is_taken else '待服用' }}
                             </span>
                         </li>
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <p>No medicines scheduled for today</p>
+                    <p class="no-data">今日无用药安排</p>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Reminders Card -->
+            <!-- 提醒事项卡片 -->
             <div class="activity-card">
                 <div class="activity-header">
                     <i class="fas fa-bell"></i>
-                    <h3>Recent Reminders</h3>
+                    <h3>近期提醒</h3>
                 </div>
                 <div class="activity-content">
                     {% if elder_reminders %}
@@ -264,53 +333,53 @@
                         <li class="activity-item">
                             <div>
                                 <strong>{{ reminder.title }}</strong>
-                                <div>{{ reminder.date }} at {{ reminder.time }}</div>
+                                <div>{{ reminder.date }} {{ reminder.time }}</div>
                             </div>
                             <span class="status {{ 'completed' if reminder.completed else 'pending' }}">
-                                {{ 'Completed' if reminder.completed else 'Pending' }}
+                                {{ '已完成' if reminder.completed else '待处理' }}
                             </span>
                         </li>
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <p>No recent reminders</p>
+                    <p class="no-data">暂无近期提醒</p>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Finance Summary Card -->
+            <!-- 财务概览卡片 -->
             <div class="activity-card">
                 <div class="activity-header">
                     <i class="fas fa-wallet"></i>
-                    <h3>Finance Summary</h3>
+                    <h3>财务概览</h3>
                 </div>
                 <div class="activity-content">
                     {% if finance_summary %}
                     <ul class="activity-list">
                         <li class="activity-item">
-                            <div>Monthly Expenses</div>
-                            <span>₹{{ finance_summary.total_monthly_expenses }}</span>
+                            <div>月度总支出</div>
+                            <span>¥{{ finance_summary.total_monthly_expenses }}</span>
                         </li>
                         <li class="activity-item">
-                            <div>Paid Expenses</div>
-                            <span>₹{{ finance_summary.total_paid_expenses }}</span>
+                            <div>已支付费用</div>
+                            <span>¥{{ finance_summary.total_paid_expenses }}</span>
                         </li>
                         <li class="activity-item">
-                            <div>Pending Expenses</div>
-                            <span>₹{{ finance_summary.pending_fixed_total }}</span>
+                            <div>待支付费用</div>
+                            <span>¥{{ finance_summary.pending_fixed_total }}</span>
                         </li>
                     </ul>
                     {% else %}
-                    <p>No financial data available</p>
+                    <p class="no-data">暂无财务数据</p>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Emergency Calls Card -->
+            <!-- 紧急呼叫卡片 -->
             <div class="activity-card">
                 <div class="activity-header">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Recent Emergency Calls</h3>
+                    <h3>近期紧急呼叫</h3>
                 </div>
                 <div class="activity-content">
                     {% if emergency_logs %}
@@ -319,14 +388,46 @@
                         <li class="activity-item">
                             <div>
                                 <strong>{{ log.contact_type }}</strong>
-                                <div>{{ log.created_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                <div>{{ log.created_at.strftime('%Y年%m月%d日 %H:%M') }}</div>
                             </div>
-                            <span class="status emergency">Emergency</span>
+                            <span class="status emergency">紧急</span>
                         </li>
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <p>No recent emergency calls</p>
+                    <p class="no-data">暂无紧急呼叫记录</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 健康监测卡片 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <i class="fas fa-heartbeat"></i>
+                    <h3>健康监测</h3>
+                </div>
+                <div class="activity-content">
+                    {% if health_data %}
+                    <ul class="activity-list">
+                        <li class="activity-item">
+                            <div>心率</div>
+                            <span>{{ health_data.heart_rate }} bpm</span>
+                        </li>
+                        <li class="activity-item">
+                            <div>血压</div>
+                            <span>{{ health_data.blood_pressure_systolic }}/{{ health_data.blood_pressure_diastolic }} mmHg</span>
+                        </li>
+                        <li class="activity-item">
+                            <div>体温</div>
+                            <span>{{ health_data.temperature }} °C</span>
+                        </li>
+                        <li class="activity-item">
+                            <div>血氧饱和度</div>
+                            <span>{{ health_data.spo2 }}%</span>
+                        </li>
+                    </ul>
+                    {% else %}
+                    <p class="no-data">暂无健康数据</p>
                     {% endif %}
                 </div>
             </div>
@@ -336,10 +437,57 @@
     <div class="elder-info-card">
         <div class="elder-info-header">
             <i class="fas fa-exclamation-circle"></i>
-            <h2>No Elder Account Linked</h2>
+            <h2>未关联长者账户</h2>
         </div>
-        <p>Please contact the administrator to link your account with an elder's account.</p>
+        <p class="no-data" style="text-align: left;">请联系管理员将您的账户与长者账户进行关联。</p>
+        <div style="margin-top: 1.5rem;">
+            <a href="#" class="nav-link" style="display: inline-block;">联系管理员</a>
+        </div>
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 自动刷新数据（每30秒）
+    setInterval(function() {
+        window.location.reload();
+    }, 30000);
+
+    // 添加点击事件到导航链接
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (this.getAttribute('href') === '#') {
+                e.preventDefault();
+                alert('请联系系统管理员进行账户关联操作。');
+            }
+        });
+    });
+
+    // 添加页面加载完成后的动画效果
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.activity-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('fade-in');
+        });
+    });
+</script>
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+</style>
 {% endblock %}
